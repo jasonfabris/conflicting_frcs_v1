@@ -10,7 +10,11 @@
     (repeatedly #(-> rgen .nextGaussian (* 0.5)))))
 
 (defn update-forces [forces]
-  forces)
+  (let [x-el (+ 5 (rand-int 1000))
+        y-el (+ 5 (rand-int 1000))
+        upd-frc (fn [f] (vector (nth normals x-el) 
+                                 (nth normals y-el)))]
+       (doall (map upd-frc forces))))
 
 (defn setup []
   ; Set frame rate to 30 frames per second.
@@ -26,7 +30,7 @@
      :fill 0
      :p1 (p/new-pacer [(/ (q/width) 2) (/ (q/height) 2)])
      :pacers ps
-     :forces (into [] frc1)}))
+     :forces (conj [] frc1)}))
 
 (defn update-state [state]
   
@@ -37,16 +41,16 @@
      :pacers (map #(p/update-loc %1 (:forces state)) (:pacers state))})
 
 (defn draw-state [state]
-  (q/no-loop)
-  (q/print-first-n 3 (str ":::Frame: " (q/frame-count) " " 
+  ;;(q/no-loop)
+  (q/print-first-n 5 (str ":::Frame: " (q/frame-count) " " 
                           (:p1 state) " " (count (:pacers state))))
-  (q/print-first-n 3 (str (:forces state)))
+  (q/print-first-n 5 (str (first (:forces state))))
   (q/fill (:fill state) 25 (* (rand) 255))
   (q/color (:color state) 255 (* (rand) 255))
   ;;(p/display-pacer (:p1 state))
   (doseq [p (:pacers state)]
     (let [[x y] (:location p)]
-      (println (q/frame-count))
+      ;;(println (q/frame-count))
       (q/ellipse x y 20 20))))
 
 (q/defsketch conflicting_frcs_v1
