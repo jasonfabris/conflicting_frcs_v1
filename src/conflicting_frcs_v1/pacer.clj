@@ -9,9 +9,10 @@
       :acceleration [0 0]
       :mass (rand 120)
       :radius 100.0
-      :target loc
+      :target (mv/add loc [(rand-int 20) (rand-int 20)])
       :max-speed 5.0
       :max-acc 3.0
+      :max-force 8
       :prev-locs []
       })
 
@@ -27,15 +28,19 @@
 
 ;;;TODO;;;
 ;;;make this work;;;
-(defn seek-target [p]
-  (let [
-        desired (mv/subtract (:target p) (:location p))
-        desired (mv/normalize desired)
-        desired (mv/multiply desired (:max-speed p))
+(defn seek-target 
+  "calculates vector to target"
+  [p]  
+  (let [desired (mv/subtract (:target p) (:location p))
+        desired (if (every? zero? desired)
+                  [0 0]
+                  (->> (mv/normalize desired)
+                       (mv/multiply (:max-speed p))))
         steer (mv/subtract desired (:velocity p))
-        steer (mv/limit steer (:max-force p))]
-    (-> p
-        (update-in [:acceleration] #(mv/add % steer)))))
+        steer-lim (mv/limit (:max-force p) steer)]
+    (mv/add steer-lim (:acceleration p))))
+
+(let [x (if 6 "yes" "no")])
 
 (defn apply-force
   "pass in net force vector and pacer"
@@ -105,7 +110,7 @@
 (defn tsts [p] (comp (fn [p] (conj (:prev-locs p) (:location p)))
       (fn [p] (assoc-in p [:location] [p]))))
 
-(def ptst (new-pacer [10 20]))
+(def ptst (new-pacer [40 20]))
 
 (defn update-pacer-old [p]
   (let [[x y] (:location p)
